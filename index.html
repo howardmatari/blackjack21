@@ -12,6 +12,54 @@
   </head>
 
   <body>
+    <div class="container">
+    <h2> Black <span style="color: black"> Jack</span></h2>
+    <h2 span id="Black Jack Result"> Let's Play</span></h2>
+  
+
+    <div class="flex-Blackjack-row-1">
+       <table>
+        <tr>
+          <th id="win-header">Wins</th>
+          <th id="loss-header">Losses</th>
+          <th id="draw-header">Draws</th>
+          
+        </tr>
+        <tr>
+          <td><span id="wins">0</span></td>
+          <td><span id="losses">0</span></td>
+          <td><span id="draws">0</span></td>
+        </tr>
+       </table>
+      </div>
+      <div class="flex-Blackjack-row-2">
+        <div id="your box">
+        <h2> You: <span id="your black jack result">0</span></h2>
+      </div>
+
+      <div id="dealer box">
+        <h2> Dealer: <span id="dealer black jack result">0</span></h2>
+      </div>
+      </div>
+
+      <div class="flex-Blackjack-row-3">
+        <div>
+          <button class="btn-lg btn-primary mr2"  id="blackjack-hit-button">
+            Hit
+          </button>
+          <button class="btn-lg btn-warning mr2"  id="blackjack-stand-button">
+            Stand
+          </button>
+          <button class="btn-lg btn-danger mr2"  id="blackjack-deal-button"> 
+            Deal
+          </button>
+          <button class="btn-lg btn-success mr2"  id="blackjack-restart-button">
+            Restart
+          </button>
+
+        </div>
+      </div>
+    </div>
   <script src="script.js"></script>
   
   </body>
