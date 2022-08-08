@@ -4,15 +4,15 @@ let blackJackGame ={
         div:  "#your-box",
         boxSize: ".flex-Blackjack-row-2 div",
         score: 0,
-
+        name: 'player'
     },
 
     dealer: {
         scoreSpan :  "#dealer-blackjack-result",
-        div:  "#your-box",
+        div:  "#dealer-box",
         boxSize: ".flex-Blackjack-row-2 div",
         score: 0,
-
+        name: 'dealer'
     },
 
     cards: ["2","3","4","5","6","7","8","9","10","K","J","Q","A"],
@@ -39,7 +39,8 @@ let blackJackGame ={
           draws: 0,
           isStand: false,
           isTurnover: false,
-          pressOnce: false
+          pressOnce: false,
+          inProgress: false
           
 
     };
@@ -57,24 +58,32 @@ let blackJackGame ={
     let winner;
     console.log("click");
 
-    document.querySelector("#blackjack-hit-button").addEventListener("click", blackJackHit);
+    
 
                                                                   
     console.log("blackjack-hit-button");
 
+    const DEALBUTTON = document.querySelector("#blackjack-deal-button")
+    const RESTARTBUTTON = document.querySelector("#blackjack-restart-button")
+    const HITBUTTON = document.querySelector("#blackjack-hit-button")
+    const STANDBUTTON = document.querySelector("#blackjack-stand-button")
+    STANDBUTTON.addEventListener("click", blackJackStand);
+    HITBUTTON.addEventListener("click", blackJackHit);
+    DEALBUTTON.addEventListener("click", blackJackDeal);
+    RESTARTBUTTON.addEventListener("click", blackJackRestart);
+    toggleButtons()
     
-    document.querySelector("#blackjack-stand-button").addEventListener("click", blackJackStand);
-    
-    document.querySelector("#blackjack-deal-button").addEventListener("click", blackJackDeal);
-    
-    document.querySelector("#blackjack-restart-button").addEventListener("click", blackJackRestart);
-    
+    function dealCard(who){
+        let card = randomCard();
+        updateScore(card, who);
+        showScore(who);
+        showCard(card, who);
+        
+    }
     function blackJackHit(){
         if(blackJackGame["isStand"]===false){
-            let card = randomCard();
-            showCard(card, YOU);
-            updateScore(card, YOU);
-            showScore(YOU);
+            dealCard(YOU)
+        }
     }
 
     function randomCard(){
@@ -84,25 +93,35 @@ let blackJackGame ={
     }
 
     function showCard(card, activePlayer){
-        if(activePlayer["score"] <= 21){
+        //if(activePlayer["score"] <= 21)
+        {
+            //console.log('showing')
             let cardImage = document.createElement("img");
             cardImage.src = `images/${card}.png`;
             cardImage.style = `width: ${widthSize()}; height: ${heightSize()};`;
+            
+
+            if(activePlayer["name"] == 'dealer'){
+                let dealerImages = document.querySelector("#dealer-box").querySelectorAll("img");
+                if(dealerImages.length === 0)
+                    cardImage.style.visibility = 'hidden'
+            }
+
             document.querySelector(activePlayer["div"]).appendChild(cardImage);
             hitSound.play();
+        }
     }
-}
 
     function widthSize() {
         if (windowWidth > 1000){
             let newWidthSize = window.screen.width * 0.1;
             return newWidthSize;
 
-    } else {
-        return window.screen.width * 0.18;
-    }
+        } else {
+            return window.screen.width * 0.18;
+        }
 
-}
+    }
 
     function heightSize() {
         if (windowHeight > 700){
@@ -121,45 +140,63 @@ let blackJackGame ={
             }else{
                 activePlayer["score"] += blackJackGame["cardsMap"][card][0];
             }
-            }else{
-                activePlayer["score"] += blackJackGame["cardsMap"][card];
-            }
+        }else{
+            activePlayer["score"] += blackJackGame["cardsMap"][card];
         }
 
-    function showScore(card, activePlayer){
-            if(activePlayer["score"] > 21){
-                
-                document.querySelector(activePlayer["scoreSpan"]).textContent = "Bust!";
-                document.querySelector(activePlayer["scoreSpan"]).style.color = "red";
+        if (activePlayer["score"] == 21 && activePlayer["name"] == 'player')
+            blackJackStand()
+    }
+
+    function showScore(activePlayer){
+        if(activePlayer["score"] > 21){
+            
+            document.querySelector(activePlayer["scoreSpan"]).textContent = activePlayer["score"] + " Bust!";
+            document.querySelector(activePlayer["scoreSpan"]).style.color = "red";
+            if(blackJackGame["inProgress"])
+                endGame()
         } else {
-            document.querySelector(activePlayer["scoreSpan"]).textContent = activePlayer["score"];
+            if(activePlayer["name"] == 'dealer'){
+                let dealerImages = document.querySelector("#dealer-box").querySelectorAll("img");
+                if(blackJackGame["inProgress"] === false)
+                    document.querySelector(activePlayer["scoreSpan"]).textContent = activePlayer["score"];
+                else
+                    document.querySelector(activePlayer["scoreSpan"]).textContent = ''
+            }else{
+                document.querySelector(activePlayer["scoreSpan"]).textContent = activePlayer["score"];
+            }
+            
         }
     }
 
 
 
     function blackJackStand() {
-             if(blackJackGame.pressOnce === false){
-
-            
-             blackJackGame["isStand"] = true;
+        if(blackJackGame.pressOnce === false){
+            blackJackGame["isStand"] = true;
              let yourImages = document.querySelector("#your-box").querySelectorAll("img");
         
+            while(YOU["score"] > DEALER["score"] && DEALER["score"] < 21) {
+                dealCard(DEALER)
+            }
 
-        for (let index = 0; index < yourImages.length; index++) {
-             let card = randomCard();
-             showCard(card, DEALER );
-             updateCard(card, DEALER );
-             showScore( DEALER);
-         } 
-         
-         
-               blackJackGame['isTurnover'] = true;
+            endGame()
+
+            blackJackGame['isTurnover'] = true;
         }
             
-        
-               blackJackGame.pressOnce = true;
-        }
+        blackJackGame.pressOnce = true;
+    }
+
+    function endGame(){
+        let dealerImages = document.querySelector("#dealer-box").querySelectorAll("img");
+        dealerImages[0].style.visibility = 'visible'
+        computeWinner()
+        showWinner()
+        blackJackGame["inProgress"] = false;
+        showScore(DEALER);
+        toggleButtons()
+    }
 
     function computeWinner() {
             if(YOU['score'] <= 21){
@@ -174,7 +211,7 @@ let blackJackGame ={
               }
 
               else if (YOU['score'] === DEALER ['score']){
-              winner = DRAW;
+              winner = 'Draw';
               }
                 
             }
@@ -226,46 +263,73 @@ let blackJackGame ={
          }
 
     function blackJackDeal() {
-            if(blackJackGame['isTurnover'] === true){
+        resetUi()
 
-    }
+        blackJackGame["inProgress"] = true;
+        blackJackGame["isStand"] = false;
+        blackJackGame.pressOnce = false;
+        blackJackGame["isTurnOver"] = false;
 
-            let yourImages = document.querySelector("#your-box").querySelectorAll("img");
-            let dealerImages = document.querySelector("#dealer-box").querySelectorAll("img");
+        dealCard(YOU)
+        dealCard(DEALER)
+        dealCard(YOU)
+        dealCard(DEALER)
 
-            YOU['score'] = DEALER ['score'] = 0;
-            document.querySelector('#your-blackjack-result').textContent = 0;
-            document.querySelector('#dealer-blackjack-result').textContent = 0;
-
-            document.querySelector('#your-blackjack-result-result').style.color = 'white';
-            document.querySelector('#dealer-blackjack-result-result').style.color ='white';
-
-            document.querySelector('#blackjack-result').textContent = "Let's Play";
-            document.querySelector('#blackjack-result').style.color ='white';
-
-            for (let index = 0; index < yourImages.length; index++) {
-                yourImages[i].remove();
-                dealerImages[i].remove();
-            }
-
-            blackJackGame["isStand"] = false;
-            blackJackGame.pressOnce = false;
-            blackJackGame["isTurnOver"] = false;
+        toggleButtons()
 
  }
 
+function toggleButtons(){
+    if(blackJackGame["inProgress"] === true) {
+        DEALBUTTON.style.display = 'none'
+        RESTARTBUTTON.style.display = 'none'
+        HITBUTTON.style.display = 'inline'
+        STANDBUTTON.style.display = 'inline'
+    }else{
+        DEALBUTTON.style.display = 'inline'
+        RESTARTBUTTON.style.display = 'inline'
+        HITBUTTON.style.display = 'none'
+        STANDBUTTON.style.display = 'none'
+    }
 }
-
-function blackJackRestart() {
-
-     blackJackDeal();
-
-     document.querySelector('#wins').textContent = 0;
+function resetState() {
+    document.querySelector('#wins').textContent = 0;
      document.querySelector('#losses').textContent = 0;
      document.querySelector('#draws').textContent = 0;
 
      blackJackGame.wins = 0;
      blackJackGame.losses = 0;
      blackJackGame.draws = 0;
+}
+
+function resetUi(){
+    let yourImages = document.querySelector("#your-box").querySelectorAll("img");
+    let dealerImages = document.querySelector("#dealer-box").querySelectorAll("img");
+
+    YOU['score'] = DEALER ['score'] = 0;
+    document.querySelector('#your-blackjack-result').textContent = 0;
+    document.querySelector('#dealer-blackjack-result').textContent = 0;
+
+    document.querySelector('#your-blackjack-result').style.color = 'white';
+    document.querySelector('#dealer-blackjack-result').style.color ='white';
+
+    document.querySelector('#blackjack-result').textContent = "Let's Play";
+    document.querySelector('#blackjack-result').style.color ='white';
+
+    for (let i = 0; i < yourImages.length; i++) {
+        yourImages[i].remove();
+    }
+
+    for (let i = 0; i < dealerImages.length; i++) {
+        dealerImages[i].remove();
+    }
+}
+function blackJackRestart() {
+
+    resetUi();
+    resetState();
+    
+
+     
 
 }
